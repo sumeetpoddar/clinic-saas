@@ -1,0 +1,29 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Patients from './pages/Patients';
+import Appointments from './pages/Appointments';
+import Prescriptions from './pages/Prescriptions';
+import Billing from './pages/Billing';
+import Inventory from './pages/Inventory';
+import './index.css';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="patients" element={<Patients />} />
+          <Route path="appointments" element={<Appointments />} />
+          <Route path="prescriptions" element={<Prescriptions />} />
+          <Route path="billing" element={<Billing />} />
+          <Route path="inventory" element={<Inventory />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;

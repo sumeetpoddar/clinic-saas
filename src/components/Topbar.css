@@ -1,0 +1,37 @@
+.topbar {
+  height: 70px;
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+  border-radius: var(--radius-lg);
+}
+
+.search-bar {
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  width: 350px;
+  border: 1px solid var(--glass-border);
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: 'Outfit', sans-serif;
+  width: 100%;
+}
+
+.relative {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  border: 2px solid white;
+}
