@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, FileText } from 'lucide-react';
+import { Search, Plus, Filter, FileText, Edit2, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Modal from '../components/Modal';
 
@@ -8,8 +8,9 @@ export default function Patients() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Modal state
+  // Modal & Form state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ name: '', age: '', gender: 'Male', phone: '' });
   const [saving, setSaving] = useState(false);
 
@@ -34,7 +35,30 @@ export default function Patients() {
     }
   }
 
-  const handleAddPatient = async (e) => {
+  const openNewModal = () => {
+    setEditingId(null);
+    setFormData({ name: '', age: '', gender: 'Male', phone: '' });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (patient) => {
+    setEditingId(patient.id);
+    setFormData({ name: patient.name, age: patient.age, gender: patient.gender, phone: patient.phone });
+    setIsModalOpen(true);
+  };
+
+  const handleDeletePatient = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this patient? This action cannot be undone.")) return;
+    try {
+      const { error } = await supabase.from('patients').delete().eq('id', id);
+      if (error) throw error;
+      fetchPatients(); // refresh list
+    } catch (error) {
+      alert('Error deleting patient: ' + error.message);
+    }
+  };
+
+  const handleSavePatient = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
@@ -42,16 +66,24 @@ export default function Patients() {
       const user = session?.user;
       if (!user) throw new Error('User session not found. Please log in again.');
       
-      const { error } = await supabase.from('patients').insert([
-        { ...formData, doctor_id: user.id }
-      ]);
-      if (error) throw error;
+      if (editingId) {
+        // Update existing patient
+        const { error } = await supabase.from('patients')
+          .update({ name: formData.name, age: formData.age, gender: formData.gender, phone: formData.phone })
+          .eq('id', editingId);
+        if (error) throw error;
+      } else {
+        // Create new patient
+        const { error } = await supabase.from('patients').insert([
+          { ...formData, doctor_id: user.id }
+        ]);
+        if (error) throw error;
+      }
       
       setIsModalOpen(false);
-      setFormData({ name: '', age: '', gender: 'Male', phone: '' });
-      fetchPatients(); // refresh list
+      fetchPatients();
     } catch (error) {
-      alert('Error adding patient: ' + error.message);
+      alert('Error saving patient: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -69,7 +101,7 @@ export default function Patients() {
           <h2>Patient Records</h2>
           <p className="text-muted">Manage your patient directory and history analytics.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+        <button className="btn btn-primary" onClick={openNewModal}>
           <Plus size={18} />
           New Patient
         </button>
@@ -121,9 +153,17 @@ export default function Patients() {
                   <td>{patient.phone}</td>
                   <td>{patient.last_visit || 'New'}</td>
                   <td>
-                    <button className="btn btn-secondary" style={{padding: '0.4rem 0.8rem', fontSize: '0.8rem'}}>
-                      <FileText size={14} style={{marginRight: '4px'}}/> View History
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button className="btn btn-secondary" title="View History" style={{padding: '0.4rem 0.6rem'}}>
+                        <FileText size={14} />
+                      </button>
+                      <button className="btn btn-secondary" title="Edit Patient" onClick={() => openEditModal(patient)} style={{padding: '0.4rem 0.6rem', color: 'var(--primary)'}}>
+                        <Edit2 size={14} />
+                      </button>
+                      <button className="btn btn-secondary" title="Delete Patient" onClick={() => handleDeletePatient(patient.id)} style={{padding: '0.4rem 0.6rem', color: 'var(--danger)'}}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -132,8 +172,8 @@ export default function Patients() {
         </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Patient">
-        <form onSubmit={handleAddPatient} className="flex-col gap-4">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Patient" : "Add New Patient"}>
+        <form onSubmit={handleSavePatient} className="flex-col gap-4">
           <div className="input-group">
             <label>Full Name</label>
             <input 
@@ -181,7 +221,7 @@ export default function Patients() {
           <div className="flex justify-end gap-2 mt-4">
             <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Patient'}
+              {saving ? 'Saving...' : (editingId ? 'Update Patient' : 'Save Patient')}
             </button>
           </div>
         </form>
