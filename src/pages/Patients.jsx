@@ -75,7 +75,7 @@ export default function Patients() {
                 <tr><td colSpan="5" className="text-center p-4">Loading patients...</td></tr>
               ) : patients.length === 0 ? (
                 <tr><td colSpan="5" className="text-center p-4">No patients found. Create one above!</td></tr>
-              ) : patients.map(patient => (
+              ) : patients.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || (p.phone && p.phone.includes(searchTerm))).map(patient => (
                 <tr key={patient.id}>
                   <td>
                     <div className="flex items-center gap-2">

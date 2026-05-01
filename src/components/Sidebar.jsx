@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Pill, Receipt, Archive, HeartPulse } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Pill, Receipt, Archive, HeartPulse, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import './Sidebar.css';
 
 const navItems = [
@@ -13,6 +14,11 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
+
   return (
     <aside className="sidebar glass-panel">
       <div className="sidebar-header flex items-center gap-2">
@@ -36,12 +42,17 @@ export default function Sidebar() {
       </nav>
       
       <div className="sidebar-footer">
-        <div className="doctor-profile flex items-center gap-2">
-          <div className="avatar">DR</div>
-          <div>
-            <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Dr. Sharma</p>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>General Physician</p>
+        <div className="doctor-profile flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="avatar">DR</div>
+            <div>
+              <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Doctor</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Online</p>
+            </div>
           </div>
+          <button className="btn-icon" onClick={handleLogout} title="Logout">
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>
