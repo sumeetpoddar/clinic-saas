@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Calendar, TrendingUp, Activity } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function Dashboard() {
   const [patients, setPatients] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function loadData() {
@@ -23,7 +25,7 @@ export default function Dashboard() {
           <h2>Good morning, Doctor</h2>
           <p className="text-muted">Here's what's happening at your clinic today.</p>
         </div>
-        <button className="btn btn-primary">
+        <button className="btn btn-primary" onClick={() => navigate('/appointments')}>
           <Calendar size={18} />
           New Appointment
         </button>

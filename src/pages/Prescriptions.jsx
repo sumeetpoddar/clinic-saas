@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mic, MicOff, Plus, FileSignature } from 'lucide-react';
-import { mockPatients, mockInventory } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 
 export default function Prescriptions() {
   const [isRecording, setIsRecording] = useState(false);
   const [voiceText, setVoiceText] = useState('');
   const [sending, setSending] = useState(false);
+  
+  const [patients, setPatients] = useState([]);
+  const [inventory, setInventory] = useState([]);
+
+  useEffect(() => {
+    async function loadData() {
+      const { data: pData } = await supabase.from('patients').select('*').order('name');
+      const { data: iData } = await supabase.from('inventory').select('*').order('name');
+      if (pData) setPatients(pData);
+      if (iData) setInventory(iData);
+    }
+    loadData();
+  }, []);
   
   const toggleRecording = () => {
     if(!isRecording) {
@@ -34,7 +47,7 @@ export default function Prescriptions() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: '+1234567890', // Replace with actual selected patient's phone number
+          to: '+1234567890', // In a real scenario, fetch the selected patient's phone number here
           body: `Hello! Your prescription from ClinicSync is ready. Details: ${voiceText || 'Paracetamol 500mg'}`
         })
       });
@@ -66,7 +79,7 @@ export default function Prescriptions() {
             <label>Select Patient</label>
             <select className="input-field">
               <option value="">-- Choose Patient --</option>
-              {mockPatients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {patients.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
 
@@ -105,7 +118,7 @@ export default function Prescriptions() {
             <div className="flex items-center gap-2 mb-2">
               <select className="input-field" style={{flex: 1}}>
                 <option value="">-- Select Medicine from Inventory --</option>
-                {mockInventory.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                {inventory.map(m => <option key={m.id} value={m.id}>{m.name} ({m.stock} {m.unit})</option>)}
               </select>
               <input type="text" placeholder="Dosage (e.g. 1-0-1)" className="input-field" style={{width: '150px'}} />
               <button className="btn btn-secondary"><Plus size={18} /> Add</button>
