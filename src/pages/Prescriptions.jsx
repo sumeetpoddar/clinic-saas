@@ -5,6 +5,7 @@ import { mockPatients, mockInventory } from '../data/mockData';
 export default function Prescriptions() {
   const [isRecording, setIsRecording] = useState(false);
   const [voiceText, setVoiceText] = useState('');
+  const [sending, setSending] = useState(false);
   
   const toggleRecording = () => {
     if(!isRecording) {
@@ -23,6 +24,30 @@ export default function Prescriptions() {
       }, 50);
     } else {
       setIsRecording(false);
+    }
+  };
+
+  const handleSendWhatsApp = async () => {
+    setSending(true);
+    try {
+      const response = await fetch('/api/send-whatsapp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: '+1234567890', // Replace with actual selected patient's phone number
+          body: `Hello! Your prescription from ClinicSync is ready. Details: ${voiceText || 'Paracetamol 500mg'}`
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert('Message sent successfully via Twilio!');
+      } else {
+        alert('Failed to send message: ' + data.error);
+      }
+    } catch (error) {
+      alert('Error sending message: ' + error.message);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -95,7 +120,9 @@ export default function Prescriptions() {
 
           <div className="mt-4 flex justify-end gap-2">
             <button className="btn btn-secondary">Preview</button>
-            <button className="btn btn-primary"><FileSignature size={18}/> Generate PDF & Send WhatsApp</button>
+            <button className="btn btn-primary" onClick={handleSendWhatsApp} disabled={sending}>
+              <FileSignature size={18}/> {sending ? 'Sending...' : 'Send WhatsApp Reminder'}
+            </button>
           </div>
         </div>
         
