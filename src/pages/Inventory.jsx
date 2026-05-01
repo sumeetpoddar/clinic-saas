@@ -33,7 +33,10 @@ export default function Inventory() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('User session not found. Please log in again.');
+      
       const status = parseInt(formData.stock) < 20 ? 'Low Stock' : 'In Stock';
       
       const { error } = await supabase.from('inventory').insert([{

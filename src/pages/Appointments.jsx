@@ -38,7 +38,10 @@ export default function Appointments() {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) throw new Error('User session not found. Please log in again.');
+      
       const patient = patients.find(p => p.id === formData.patient_id);
       
       const { error } = await supabase.from('appointments').insert([{
